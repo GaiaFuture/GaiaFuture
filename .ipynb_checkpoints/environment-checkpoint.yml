@@ -6,7 +6,6 @@ dependencies:
     - python
     - cartopy       # Geographic plotting toolkit
     - dask          # Parallel processing library
-    - dask_jobqueue # Addition 1/24/2024
     - hvplot
     - ipython       # IPython interpreter and tools
     - jupyter       # Jupyter federation architecture
@@ -27,3 +26,4 @@ dependencies:
     - statsmodels
     - xarray        # N-d labeled array library
     - xesmf
+    - dask-jobqueue # Addition 1/25/2024
