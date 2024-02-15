@@ -1,2 +1,0 @@
-# GaiaFuture
-MEDS Capstone Project
