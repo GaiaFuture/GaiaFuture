@@ -37,3 +37,16 @@ def fix_time(ds):
     yr0=str(ds['time.year'][0].values)
     ds['time']=xr.cftime_range(yr0,periods=len(ds.time),freq='MS',calendar='noleap')
     return ds
+
+#------Weight Gridcells by Landarea---
+def weight_landarea_gridcells(da,landarea):
+    weighted_avg_area = da.weighted(landarea).mean(dim = 'gridcell') 
+    return weighted_avg_area
+
+#------Weighted Averages by Time---
+def yearly_weighted_average(da):
+    # Get the array of number of days from the main dataset
+    days_in_month = da['time.daysinmonth']
+    weighted_sum = (days_in_month*da).groupby("time.year").sum(dim = 'time') # Multiply each month's data by corresponding days in month
+    total_days = days_in_month.groupby("time.year").sum(dim = 'time')  # Total days in the year
+    return weighted_sum / total_days  # Calculate weighted average for the year
