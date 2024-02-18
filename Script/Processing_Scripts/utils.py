@@ -2,7 +2,9 @@
 # ----           load libraries           ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 import xarray as xr
+import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from dask_jobqueue import PBSCluster
 from dask.distributed import Client
 
@@ -64,18 +66,20 @@ landarea = landarea_ds['landarea']
 # dummy data to have stored for preloaded visual on 
 dummy_filepath = '/glade/campaign/cgd/tss/projects/PPE/PPEn11_OAAT/CTL2010/hist/PPEn11_CTL2010_OAAT0000.clm2.h0.2005-02-01-00000.nc'
 
-# variable data described by filepath stored as ds
+# dummy data described by filepath stored as ds
 ds = xr.open_dataset(dummy_filepath)
 
+# dummy variable data subset as data array. using LNC for linearity
+da = ds['LNC']
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ----     correct time-parsing bug       ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-def fix_time(ds):
+def fix_time(da):
     '''fix CESM monthly time-parsing bug'''
-    yr0=str(ds['time.year'][0].values)
-    ds['time']=xr.cftime_range(yr0,periods=len(ds.time),freq='MS',calendar='noleap')
-    return ds
+    yr0 = str(da['time.year'][0].values)
+    da['time'] = xr.cftime_range(yr0,periods=len(da.time),freq='MS',calendar='noleap')
+    return da
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -84,13 +88,10 @@ def fix_time(ds):
 #------Weight Gridcells by Landarea---
 def weight_landarea_gridcells(da,landarea):
 
-    # the desired variable may be subset from this data array. In this case we're using LNC for linearity
-    da = ds['LNC']
-
     # weigh landarea variable by mean of gridcell dimension
     weighted_avg_area = da.weighted(landarea).mean(dim = 'gridcell')
 
-    return weighted_avg_area
+    return da   # QUESTION: Should we return da so that we can call this later thru utils? (changed from weighted_avg_area)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -108,4 +109,6 @@ def yearly_weighted_average(da):
     total_days = days_in_month.groupby("time.year").sum(dim = 'time')
 
     # Calculate weighted average for the year
-    return weighted_sum / total_days
+    da['time'] = weighted_sum / total_days            # QUESTION: Is this right?
+
+    return da
