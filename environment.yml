@@ -27,3 +27,4 @@ dependencies:
     - xarray        # N-d labeled array library
     - xesmf
     - dask-jobqueue # Addition 1/25/2024
+    - glob          # Addition 2/18/2024

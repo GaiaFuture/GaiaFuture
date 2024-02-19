@@ -76,9 +76,13 @@ da = ds['LNC']
 # ----     correct time-parsing bug       ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 def fix_time(da):
+    
     '''fix CESM monthly time-parsing bug'''
+    
     yr0 = str(da['time.year'][0].values)
+    
     da['time'] = xr.cftime_range(yr0,periods=len(da.time),freq='MS',calendar='noleap')
+    
     return da
 
 
@@ -89,9 +93,9 @@ def fix_time(da):
 def weight_landarea_gridcells(da,landarea):
 
     # weigh landarea variable by mean of gridcell dimension
-    weighted_avg_area = da.weighted(landarea).mean(dim = 'gridcell')
+    da['landarea'] = da.weighted(landarea).mean(dim = 'gridcell')              # changed to da['landarea'] instead of weighted_avg_area. should it be da.landarea?
 
-    return da   # QUESTION: Should we return da so that we can call this later thru utils? (changed from weighted_avg_area)
+    return da                                           # QUESTION: Should we return da so that we can call this later thru utils? (changed from weighted_avg_area)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -109,6 +113,6 @@ def yearly_weighted_average(da):
     total_days = days_in_month.groupby("time.year").sum(dim = 'time')
 
     # Calculate weighted average for the year
-    da['time'] = weighted_sum / total_days            # QUESTION: Is this right?
+    da['time'] = weighted_sum / total_days            # QUESTION: Is this right? changed from return weighted_sum / total_days
 
     return da
