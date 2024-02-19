@@ -3,3 +3,4 @@ dask-worker.*
 .ipynb_checkpoints/environment-checkpoint.yml
 __pycache__
 /.ipynb_checkpoints/
+.ipynb_checkpoints
