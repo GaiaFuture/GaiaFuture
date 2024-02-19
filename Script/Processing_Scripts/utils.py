@@ -95,7 +95,7 @@ def weight_landarea_gridcells(da,landarea):
     # weigh landarea variable by mean of gridcell dimension
     da['landarea'] = da.weighted(landarea).mean(dim = 'gridcell')              # changed to da['landarea'] instead of weighted_avg_area. should it be da.landarea?
 
-    return da                                           # QUESTION: Should we return da so that we can call this later thru utils? (changed from weighted_avg_area)
+    return da                                           # This now works when importing utils (changed from weighted_avg_area)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -113,6 +113,6 @@ def yearly_weighted_average(da):
     total_days = days_in_month.groupby("time.year").sum(dim = 'time')
 
     # Calculate weighted average for the year
-    da['time'] = weighted_sum / total_days            # QUESTION: Is this right? changed from return weighted_sum / total_days
+    da['time'] = weighted_sum / total_days            # This now works when importing utils. (changed from return weighted_sum / total_days)
 
     return da
