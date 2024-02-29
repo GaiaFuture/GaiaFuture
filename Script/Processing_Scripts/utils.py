@@ -66,11 +66,6 @@ landarea = landarea_ds['landarea']
 # dummy data to have stored for preloaded visual on 
 dummy_filepath = '/glade/campaign/cgd/tss/projects/PPE/PPEn11_OAAT/CTL2010/hist/PPEn11_CTL2010_OAAT0000.clm2.h0.2005-02-01-00000.nc'
 
-# dummy data described by filepath stored as ds
-ds = xr.open_dataset(dummy_filepath)
-
-# dummy variable data subset as data array. using LNC for linearity
-da = ds['LNC']
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ----     correct time-parsing bug       ----
