@@ -49,7 +49,31 @@ def get_cluster(account,cores=30):
     client = Client(cluster)
 
     return client
+    
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ----     cluster reading function       ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#modify the function if you want to pass the parameter
+def read_all_simulations(var):
+    '''prepare cluster list and read to create ensemble(group of data)
+    use preprocess to select only certain dimension and a variable'''
+    # read all simulations as a list
+    cluster_list= sorted(glob.glob('/glade/campaign/cgd/tss/projects/PPE/PPEn11_LHC/transient/hist/PPEn11_transient_LHC[0][0-5][0-9][0-9].clm2.h0.2005-02-01-00000.nc'))
+    cluster_list = cluster_list[1:len(cluster_list)]
 
+    def preprocess(ds, var):
+        '''using this function in xr.open_mfdataset as preprocess
+        ensures that when only these four things are selected 
+        before the data is combined'''
+        return ds[['lat', 'lon', 'time', var]]
+    
+    #read the list and load it for the notebook
+    ds = xr.open_mfdataset( cluster_list, 
+                                   combine='nested',
+                                   preprocess = lambda ds: preprocess(ds, var),
+                                   parallel= True, 
+                                   concat_dim="ens")
+    return ds
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ----     load data stored in casper     ----
