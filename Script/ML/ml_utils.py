@@ -5,9 +5,14 @@ import xarray as xr
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+
+import glob
 from dask_jobqueue import PBSCluster
 from dask.distributed import Client
 
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.impute import SimpleImputer
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ----  server request to aid processing  ----
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -51,6 +56,33 @@ def get_cluster(account,cores=30):
     return client
 
 
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ----     cluster reading function       ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#modify the function if you want to pass the parameter
+def read_all_simulations(var):
+    '''prepare cluster list and read to create ensemble(group of data)
+    use preprocess to select only certain dimension and a variable'''
+    # read all simulations as a list
+    cluster_list= sorted(glob.glob('/glade/campaign/cgd/tss/projects/PPE/PPEn11_LHC/transient/hist/PPEn11_transient_LHC[0][0-5][0-9][0-9].clm2.h0.2005-02-01-00000.nc'))
+    cluster_list = cluster_list[1:len(cluster_list)]
+
+    def preprocess(ds, var):
+        '''using this function in xr.open_mfdataset as preprocess
+        ensures that when only these four things are selected 
+        before the data is combined'''
+        return ds[['lat', 'lon', 'time', var]]
+    
+    #read the list and load it for the notebook
+    ds = xr.open_mfdataset( cluster_list, 
+                                   combine='nested',
+                                   preprocess = lambda ds: preprocess(ds, var),
+                                   parallel= True, 
+                                   concat_dim="ens")
+    return ds
+
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ----     load data stored in casper     ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -83,9 +115,9 @@ def fix_time(da):
 def weight_landarea_gridcells(da,landarea):
 
     # weigh landarea variable by mean of gridcell dimension
-    da['landarea'] = da.weighted(landarea).mean(dim = 'gridcell')              # changed to da['landarea'] instead of weighted_avg_area. should it be da.landarea?
+    da['landarea'] = da.weighted(landarea).mean(dim = 'gridcell')             
 
-    return da                                           # This now works when importing utils (changed from weighted_avg_area)
+    return da                                          
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -103,6 +135,6 @@ def yearly_weighted_average(da):
     total_days = days_in_month.groupby("time.year").sum(dim = 'time')
 
     # Calculate weighted average for the year
-    da['time'] = weighted_month / total_days            # This now works when importing utils. (changed from return weighted_sum / total_days)
+    da['time'] = weighted_month / total_days          
 
     return da
