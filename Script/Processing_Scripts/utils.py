@@ -57,9 +57,10 @@ def get_cluster(account,cores=30):
 def read_all_simulations(var):
     '''prepare cluster list and read to create ensemble(group of data)
     use preprocess to select only certain dimension and a variable'''
+    
     # read all simulations as a list
     cluster_list= sorted(glob.glob('/glade/campaign/cgd/tss/projects/PPE/PPEn11_LHC/transient/hist/PPEn11_transient_LHC[0][0-5][0-9][0-9].clm2.h0.2005-02-01-00000.nc'))
-    cluster_list = cluster_list[1:len(cluster_list)]
+    cluster_list = cluster_list[1:]
 
     def preprocess(ds, var):
         '''using this function in xr.open_mfdataset as preprocess
@@ -73,6 +74,7 @@ def read_all_simulations(var):
                                    preprocess = lambda ds: preprocess(ds, var),
                                    parallel= True, 
                                    concat_dim="ens")
+    
     return ds
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -112,9 +114,7 @@ def fix_time(da):
 def weight_landarea_gridcells(da,landarea):
 
     # weigh landarea variable by mean of gridcell dimension
-    da['landarea'] = da.weighted(landarea).mean(dim = 'gridcell')              # changed to da['landarea'] instead of weighted_avg_area. should it be da.landarea?
-
-    return da                                           # This now works when importing utils (changed from weighted_avg_area)
+    return da.weighted(landarea).mean(dim = 'gridcell')
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -126,12 +126,55 @@ def yearly_weighted_average(da):
     days_in_month = da['time.daysinmonth']
 
     # Multiply each month's data by corresponding days in month
-    weighted_sum = (days_in_month*da).groupby("time.year").sum(dim = 'time')
+    weighted_month = (days_in_month*da).groupby("time.year").sum(dim = 'time')
 
     # Total days in the year
-    total_days = days_in_month.groupby("time.year").sum(dim = 'time')
+    days_per_year = days_in_month.groupby("time.year").sum(dim = 'time')
 
     # Calculate weighted average for the year
-    da['time'] = weighted_sum / total_days            # This now works when importing utils. (changed from return weighted_sum / total_days)
+    return weighted_month / days_per_year
 
-    return da
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ----    User Selected Plotting Funct    ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+def subset_and_plot_cluster(var, parameter):
+    '''describe the relationship between the selected variable 
+    and parameter(s) between 2005-2010. output a
+    cluster plot averaged by year.'''
+    
+    # Read in and wrangle user selected parameter cluster
+    da_p = read_all_simulations(parameter)
+
+    # feb. ncar time bug
+    da = fix_time(da_p)
+    # convert xr.ds to xr.da
+    da = da[parameter]
+    # weight gridcell dim by global land area
+    da_global = weight_landarea_gridcells(da, landarea)
+    # weight time dim by days in month
+    da_global_ann = yearly_weighted_average(da_global)
+    # take global avg for param over year dimension
+    param_avg = da_global_ann.mean(dim='year')
+
+    # Read in and wrangle user selected variable cluster
+    da_v = read_all_simulations(var)
+    # feb. ncar time bug
+    da = fix_time(da_v)
+    # convert xr.ds to xr.da
+    da = da[var]
+    # weight gridcell dim by global land area
+    da_global = weight_landarea_gridcells(da, landarea)
+    # weight time dim by days in month
+    da_global_ann = yearly_weighted_average(da_global)
+    # take global avg for variable over year dimension
+    var_avg = da_global_ann.mean(dim='year')
+
+    # Plotting
+    plt.scatter(x=var_avg, y=param_avg)
+    # Set plot labels and title
+    plt.xlabel(var)
+    plt.ylabel(parameter)
+    plt.title('2005-2010 Global Average')
+    # Show the plot
+    plt.show()
