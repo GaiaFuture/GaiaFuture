@@ -155,9 +155,7 @@ def subset_and_plot_cluster(var, parameter):
     cluster plot averaged by year.'''
 
     # Read in and wrangle user selected parameter cluster
-    da_global_ann = params[parameter]
-    # take global avg for param over year dimension
-    param_avg = da_global_ann.mean(dim='year')
+    param_avg  = params[parameter]
 
     
     # Read in and wrangle user selected variable cluster
