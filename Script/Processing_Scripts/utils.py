@@ -141,13 +141,13 @@ def yearly_weighted_average(da):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ----    User Selected Plotting Funct    ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-def subset_and_plot_cluster(var, parameter):
+def subset_and_plot_cluster(param, var):
     '''describe the relationship between the selected variable 
     and parameter(s) between 2005-2010. output a
     cluster plot averaged by year.'''
 
     # Read in and wrangle user selected parameter cluster
-    param_avg  = params[parameter]
+    param_avg  = params[param]
 
     
     # Read in and wrangle user selected variable cluster
@@ -165,10 +165,10 @@ def subset_and_plot_cluster(var, parameter):
 
 
     # Plotting
-    plt.scatter(x=var_avg, y=param_avg, color = '#62c900ff', alpha = 0.8)
+    plt.scatter(x=param_avg, y=var_avg, color = '#62c900ff', alpha = 0.8)
     # Set plot labels and title
-    plt.xlabel(var)
-    plt.ylabel(parameter)
+    plt.xlabel(param)
+    plt.ylabel(var)
     plt.title('2005-2010 Global Average')
     # Show the plot
     plt.show()
