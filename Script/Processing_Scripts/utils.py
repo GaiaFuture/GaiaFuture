@@ -171,7 +171,7 @@ def subset_and_plot_cluster(var, parameter):
     var_avg = da_global_ann.mean(dim='year')
 
     # Plotting
-    plt.scatter(x=var_avg, y=param_avg)
+    plt.scatter(x=var_avg, y=param_avg, color = '#62c900ff', alpha = 0.8)
     # Set plot labels and title
     plt.xlabel(var)
     plt.ylabel(parameter)
