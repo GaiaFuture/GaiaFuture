@@ -5,6 +5,8 @@ import xarray as xr
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+
+import glob
 from dask_jobqueue import PBSCluster
 from dask.distributed import Client
 
@@ -57,9 +59,10 @@ def get_cluster(account,cores=30):
 def read_all_simulations(var):
     '''prepare cluster list and read to create ensemble(group of data)
     use preprocess to select only certain dimension and a variable'''
+    
     # read all simulations as a list
     cluster_list= sorted(glob.glob('/glade/campaign/cgd/tss/projects/PPE/PPEn11_LHC/transient/hist/PPEn11_transient_LHC[0][0-5][0-9][0-9].clm2.h0.2005-02-01-00000.nc'))
-    cluster_list = cluster_list[1:len(cluster_list)]
+    cluster_list = cluster_list[1:]
 
     def preprocess(ds, var):
         '''using this function in xr.open_mfdataset as preprocess
@@ -73,6 +76,7 @@ def read_all_simulations(var):
                                    preprocess = lambda ds: preprocess(ds, var),
                                    parallel= True, 
                                    concat_dim="ens")
+    
     return ds
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -86,10 +90,13 @@ landarea_ds = xr.open_dataset(landarea_file)
 
 landarea = landarea_ds['landarea']
 
-#-------Dummy Variable Data---------
-# dummy data to have stored for preloaded visual on 
-dummy_filepath = '/glade/campaign/cgd/tss/projects/PPE/PPEn11_OAAT/CTL2010/hist/PPEn11_CTL2010_OAAT0000.clm2.h0.2005-02-01-00000.nc'
 
+#-------Dummy Parameter Data---------
+# x variable data for plotting
+df = pd.read_csv('/glade/campaign/asp/djk2120/PPEn11/csvs/lhc220926.txt',index_col=0)
+# the only dimension here is the 'member' aka file index id [LCH0001-500]
+# convert to data set
+params = xr.Dataset(df)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ----     correct time-parsing bug       ----
@@ -112,9 +119,7 @@ def fix_time(da):
 def weight_landarea_gridcells(da,landarea):
 
     # weigh landarea variable by mean of gridcell dimension
-    da['landarea'] = da.weighted(landarea).mean(dim = 'gridcell')              # changed to da['landarea'] instead of weighted_avg_area. should it be da.landarea?
-
-    return da                                           # This now works when importing utils (changed from weighted_avg_area)
+    return da.weighted(landarea).mean(dim = 'gridcell')
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -126,12 +131,46 @@ def yearly_weighted_average(da):
     days_in_month = da['time.daysinmonth']
 
     # Multiply each month's data by corresponding days in month
-    weighted_sum = (days_in_month*da).groupby("time.year").sum(dim = 'time')
+    weighted_month = (days_in_month*da).groupby("time.year").sum(dim = 'time')
 
     # Total days in the year
-    total_days = days_in_month.groupby("time.year").sum(dim = 'time')
+    days_per_year = days_in_month.groupby("time.year").sum(dim = 'time')
 
     # Calculate weighted average for the year
-    da['time'] = weighted_sum / total_days            # This now works when importing utils. (changed from return weighted_sum / total_days)
+    return weighted_month / days_per_year
 
-    return da
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ----    User Selected Plotting Funct    ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+def subset_and_plot_cluster(param, var):
+    '''describe the relationship between the selected variable 
+    and parameter(s) between 2005-2010. output a
+    cluster plot averaged by year.'''
+
+    # Read in and wrangle user selected parameter cluster
+    param_avg  = params[param]
+
+    
+    # Read in and wrangle user selected variable cluster
+    da_v = read_all_simulations(var)
+    # feb. ncar time bug
+    da = fix_time(da_v)
+    # convert xr.ds to xr.da
+    da = da[var]
+    # weight gridcell dim by global land area
+    da_global = weight_landarea_gridcells(da, landarea)
+    # weight time dim by days in month
+    da_global_ann = yearly_weighted_average(da_global)
+    # take global avg for variable over year dimension
+    var_avg = da_global_ann.mean(dim='year')
+
+
+    # Plotting
+    plt.scatter(x=param_avg, y=var_avg, color = '#62c900ff', alpha = 0.8)
+    # Set plot labels and title
+    plt.xlabel(param)
+    plt.ylabel(var)
+    plt.title('2005-2010 Global Average')
+    # Show the plot
+    plt.show()

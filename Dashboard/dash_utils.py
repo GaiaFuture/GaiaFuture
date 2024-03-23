@@ -10,14 +10,7 @@ import glob
 from dask_jobqueue import PBSCluster
 from dask.distributed import Client
 
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
-from sklearn.impute import SimpleImputer
 
-from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
-from sklearn.preprocessing import StandardScaler
-from sklearn.gaussian_process.kernels import RBF, WhiteKernel
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ----  server request to aid processing  ----
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -60,8 +53,6 @@ def get_cluster(account,cores=30):
 
     return client
 
-
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ----     cluster reading function       ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -89,11 +80,10 @@ def read_all_simulations(var):
     
     return ds
 
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ----     load data stored in casper     ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#----- Gridcell Landareas Data -----
+#-------Gridcell Landareas Data-----
 # reading, storing, subsetting
 landarea_file = '/glade/campaign/cgd/tss/projects/PPE/helpers/sparsegrid_landarea.nc'
 
@@ -101,13 +91,13 @@ landarea_ds = xr.open_dataset(landarea_file)
 
 landarea = landarea_ds['landarea']
 
-#------- Parameter Data ---------
+
+#-------Dummy Parameter Data---------
 # x variable data for plotting
 df = pd.read_csv('/glade/campaign/asp/djk2120/PPEn11/csvs/lhc220926.txt',index_col=0)
 # the only dimension here is the 'member' aka file index id [LCH0001-500]
 # convert to data set
 params = xr.Dataset(df)
-
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ----     correct time-parsing bug       ----
