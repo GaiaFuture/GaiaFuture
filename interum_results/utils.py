@@ -10,7 +10,6 @@ import glob
 from dask_jobqueue import PBSCluster
 from dask.distributed import Client
 
-
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ----  server request to aid processing  ----
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -175,5 +174,3 @@ def subset_and_plot_cluster(param, var):
     plt.title('2005-2010 Global Average')
     # Show the plot
     plt.show()
-
-
