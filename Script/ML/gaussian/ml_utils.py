@@ -86,13 +86,30 @@ def read_all_simulations(var):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ----     load data stored in casper     ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#-------Gridcell Landareas Data-----
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    #----  Gridcell Landareas Data     -----
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # reading, storing, subsetting
 landarea_file = '/glade/campaign/cgd/tss/projects/PPE/helpers/sparsegrid_landarea.nc'
 
 landarea_ds = xr.open_dataset(landarea_file)
 
 landarea = landarea_ds['landarea']
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    #----        Parameter Data.       ----
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# x parameter data for assessment
+df = pd.read_csv('/glade/campaign/asp/djk2120/PPEn11/csvs/lhc220926.txt',index_col=0)
+# the only dimension here is the 'member' aka file index id [LCH0001-500]
+# convert to xr.ds
+params = xr.Dataset(df)
+
+# subset wrangle user selected parameter c
+def subset_param(param)    
+
+    # xr.da subset of parameter data 
+    return param_avg  = params[param]
+
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ----     correct time-parsing bug       ----
@@ -111,14 +128,16 @@ def fix_time(da):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ----  weigh dummy landarea by gridcell  ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#------Weight Gridcells by Landarea---
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    #----  Weight Gridcells by Landarea ----
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 def weight_landarea_gridcells(da,landarea):
 
     # weigh landarea variable by mean of gridcell dimension
     da['landarea'] = da.weighted(landarea).mean(dim = 'gridcell')             
 
     return da                                          
-
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ----     weigh dummy data time dim      ----
@@ -132,9 +151,93 @@ def yearly_weighted_average(da):
     weighted_month = (days_in_month*da).groupby("time.year").sum(dim = 'time')
 
     # Total days in the year
-    total_days = days_in_month.groupby("time.year").sum(dim = 'time')
+    days_per_year = days_in_month.groupby("time.year").sum(dim = 'time')
 
     # Calculate weighted average for the year
-    da['time'] = weighted_month / total_days          
+    return weighted_month / days_per_year
+    
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ----    Subset User Selection Funct     ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+def subset_var_cluster(var):
+    '''Subset the selected variable 
+    (s) between 2005-2010 [for now, will be time range]
+    as a xr.da.'''
+    
+    # Read in and wrangle user selected variable cluster
+    da_v = read_all_simulations(var)
+    # feb. ncar time bug
+    da = fix_time(da_v)
+    # convert xr.ds to xr.da
+    return da = da[var]
 
-    return da
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ----      Subset Var Wrangle Funct      ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+def wrangle_var_cluster(da):
+    '''Weight gridcell dimension by landarea 
+    and weight time dimension by the days per each month
+    over the total number of days in a year. Globally average
+    the selected variable between 2005-2010 
+    [for now, will be time range]
+    as a xr.da.'''
+    # weight gridcell dim by global land area
+    da_global = weight_landarea_gridcells(da, landarea)
+    # weight time dim by days in month
+    da_global_ann = yearly_weighted_average(da_global)
+    # take global avg for variable over year dimension
+    return var_avg = da_global_ann.mean(dim='year')
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ----  User Selected ML Plotting Funct   ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# function to plot a cluster for to build on for ml
+def cluster_ml_plot(param_avg, var_avg)
+    '''Basic plotting to aid with gpr assessment, 
+    building on currently.'''
+
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # ----         Fit Model            ----
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Generate predictions and confidence intervals for each variable using the trained model
+   # y_pred, sigma = gpr_best.predict(x_pred, return_std=True)     # to be included once upper portion of workflow optimized
+   
+    # standard 0:1, set constant
+    x_pred = np.linspace(0,1,20)
+
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # ----         Plot Model           ----
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    plt.figure(figsize=(10, 6))
+    plt.scatter(x_test, y_test, color='#62c900ff', label='Observed data')
+    plt.plot(x_pred, y_pred, color='#134611', label='GPR Prediction')
+    plt.fill_between(x_test.flatten(),
+                     y_pred - 1.96 * sigma,, y_pred + 1.96 * sigma,
+                     alpha=0.5,
+                     color='#9d6b53',
+                     label = '95% Confidence Interval')
+    # Set plot labels and title
+    plt.xlabel(f"Perturbed Parameter: ({param_avg:})")  # ideas for later: param_name = getattr(param_avg)
+    plt.ylabel(f"Variable: ({var_avg:})")
+    plt.title('Parameter Value Uncertainty Estimation')
+    plt.legend()
+    # Show the plot
+    plt.show()
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ---- User Selected Panel Plotting Funct ---- # adding this because working to implement into ml wkflw 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# function to plot a cluster for the dashboard
+def cluster_panel_plot(param_avg, var_avg)
+'''Basic plotting to aid with dashboard set up 
+    building on currently.'''
+    data = pd.DataFrame({'x': param_avg, 'y': var_avg})
+    
+    # Create scatter plot using hvplot
+    hvplot.scatter(
+        x='x', y='y', color='#62c900ff', alpha=0.8,
+        xlabel=param, ylabel=var, title='2005-2010 Global Average'
+    )
+    return pn.panel(scatter_plot)
