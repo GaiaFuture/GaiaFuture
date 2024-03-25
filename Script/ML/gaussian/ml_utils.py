@@ -137,9 +137,7 @@ def fix_time(da):
 def weight_landarea_gridcells(da,landarea):
 
     # weigh landarea variable by mean of gridcell dimension
-    da['landarea'] = da.weighted(landarea).mean(dim = 'gridcell')             
-
-    return da                                          
+    return da.weighted(landarea).mean(dim = 'gridcell')
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ----       weight var data time dim     ----
