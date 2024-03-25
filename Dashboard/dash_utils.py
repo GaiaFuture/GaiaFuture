@@ -101,7 +101,7 @@ df = pd.read_csv('/glade/campaign/asp/djk2120/PPEn11/csvs/lhc220926.txt',index_c
 params = xr.Dataset(df)
 
 # subset wrangle user selected parameter c
-def subset_param(param)    
+def subset_param(param):    
 
     # xr.da subset of parameter data 
     return param_avg  = params[param]
@@ -189,7 +189,7 @@ def wrangle_var_cluster(da):
 # ---- User Selected Panel Plotting Funct ---- # adding this because working to implement into ml wkflw 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # function to plot a cluster for the dashboard
-def cluster_panel_plot(param_avg, var_avg)
+def cluster_panel_plot(param_avg, var_avg):
 '''Basic plotting to aid with dashboard set up 
     building on currently.'''
     data = pd.DataFrame({'x': param_avg, 'y': var_avg})
