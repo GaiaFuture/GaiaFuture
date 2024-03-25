@@ -66,7 +66,7 @@ def read_all_simulations(var):
     use preprocess to select only certain dimension and a variable'''
     # read all simulations as a list
     cluster_list= sorted(glob.glob('/glade/campaign/cgd/tss/projects/PPE/PPEn11_LHC/transient/hist/PPEn11_transient_LHC[0][0-5][0-9][0-9].clm2.h0.2005-02-01-00000.nc'))
-    cluster_list = cluster_list[1:len(cluster_list)]
+    cluster_list = cluster_list[1:]
 
     def preprocess(ds, var):
         '''using this function in xr.open_mfdataset as preprocess
@@ -104,11 +104,13 @@ df = pd.read_csv('/glade/campaign/asp/djk2120/PPEn11/csvs/lhc220926.txt',index_c
 # convert to xr.ds
 params = xr.Dataset(df)
 
-# subset wrangle user selected parameter c
+# not needed, but incase we want it 
 def subset_param(param):
-
+    
     # xr.da subset of parameter data 
-    return param_avg  = params[param]
+    param_avg = params[param]
+    
+    return param_avg
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -140,7 +142,7 @@ def weight_landarea_gridcells(da,landarea):
     return da                                          
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ----     weigh dummy data time dim      ----
+# ----       weight var data time dim     ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #------Weighted Averages by Time---
 def yearly_weighted_average(da):
@@ -169,7 +171,9 @@ def subset_var_cluster(var):
     # feb. ncar time bug
     da = fix_time(da_v)
     # convert xr.ds to xr.da
-    return da = da[var]
+    da = da[var]
+
+    return da
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -187,7 +191,9 @@ def wrangle_var_cluster(da):
     # weight time dim by days in month
     da_global_ann = yearly_weighted_average(da_global)
     # take global avg for variable over year dimension
-    return var_avg = da_global_ann.mean(dim='year')
+    var_avg = da_global_ann.mean(dim='year')
+    
+    return var_avg
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -214,7 +220,7 @@ def cluster_ml_plot(param_avg, var_avg):
     plt.scatter(x_test, y_test, color='#62c900ff', label='Observed data')
     plt.plot(x_pred, y_pred, color='#134611', label='GPR Prediction')
     plt.fill_between(x_test.flatten(),
-                     y_pred - 1.96 * sigma,, y_pred + 1.96 * sigma,
+                     y_pred - 1.96 * sigma, y_pred + 1.96 * sigma,
                      alpha=0.5,
                      color='#9d6b53',
                      label = '95% Confidence Interval')
@@ -231,7 +237,7 @@ def cluster_ml_plot(param_avg, var_avg):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # function to plot a cluster for the dashboard
 def cluster_panel_plot(param_avg, var_avg):
-'''Basic plotting to aid with dashboard set up 
+    '''Basic plotting to aid with dashboard set up 
     building on currently.'''
     data = pd.DataFrame({'x': param_avg, 'y': var_avg})
     
