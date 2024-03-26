@@ -62,6 +62,7 @@ def get_cluster(account,cores=30):
 
 
 
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ----     cluster reading function       ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -69,7 +70,6 @@ def get_cluster(account,cores=30):
 def read_all_simulations(var):
     '''prepare cluster list and read to create ensemble(group of data)
     use preprocess to select only certain dimension and a variable'''
-    
     # read all simulations as a list
     cluster_list= sorted(glob.glob('/glade/campaign/cgd/tss/projects/PPE/PPEn11_LHC/transient/hist/PPEn11_transient_LHC[0][0-5][0-9][0-9].clm2.h0.2005-02-01-00000.nc'))
     cluster_list = cluster_list[1:]
@@ -86,9 +86,21 @@ def read_all_simulations(var):
                                    preprocess = lambda ds: preprocess(ds, var),
                                    parallel= True, 
                                    concat_dim="ens")
-    
     return ds
 
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ----     load data stored in casper     ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    #----  Gridcell Landareas Data     -----
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# reading, storing, subsetting
+landarea_file = '/glade/campaign/cgd/tss/projects/PPE/helpers/sparsegrid_landarea.nc'
+
+landarea_ds = xr.open_dataset(landarea_file)
+
+landarea = landarea_ds['landarea']
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #----        Parameter Data.       ----
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -98,8 +110,9 @@ df = pd.read_csv('/glade/campaign/asp/djk2120/PPEn11/csvs/lhc220926.txt',index_c
 # convert to xr.ds
 params = xr.Dataset(df)
 
+# not needed, but incase we want it 
 def subset_param(param):
-
+    
     # xr.da subset of parameter data 
     param_avg = params[param]
     
@@ -130,12 +143,10 @@ def fix_time(da):
 def weight_landarea_gridcells(da,landarea):
 
     # weigh landarea variable by mean of gridcell dimension
-    da['landarea'] = da.weighted(landarea).mean(dim = 'gridcell')             
-
-    return da                                          
+    return da.weighted(landarea).mean(dim = 'gridcell')
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ----     weigh dummy data time dim      ----
+# ----       weight var data time dim     ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #------Weighted Averages by Time---
 def yearly_weighted_average(da):
@@ -164,7 +175,7 @@ def subset_var_cluster(var):
     # feb. ncar time bug
     da = fix_time(da_v)
     # convert xr.ds to xr.da
-     da = da[var]
+    da = da[var]
 
     return da
 
@@ -184,7 +195,9 @@ def wrangle_var_cluster(da):
     # weight time dim by days in month
     da_global_ann = yearly_weighted_average(da_global)
     # take global avg for variable over year dimension
-    return var_avg = da_global_ann.mean(dim='year')
+    var_avg = da_global_ann.mean(dim='year')
+    
+    return var_avg
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -211,7 +224,7 @@ def cluster_ml_plot(param_avg, var_avg):
     plt.scatter(x_test, y_test, color='#62c900ff', label='Observed data')
     plt.plot(x_pred, y_pred, color='#134611', label='GPR Prediction')
     plt.fill_between(x_test.flatten(),
-                     y_pred - 1.96 * sigma,, y_pred + 1.96 * sigma,
+                     y_pred - 1.96 * sigma, y_pred + 1.96 * sigma,
                      alpha=0.5,
                      color='#9d6b53',
                      label = '95% Confidence Interval')
@@ -228,7 +241,7 @@ def cluster_ml_plot(param_avg, var_avg):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # function to plot a cluster for the dashboard
 def cluster_panel_plot(param_avg, var_avg):
-'''Basic plotting to aid with dashboard set up 
+    '''Basic plotting to aid with dashboard set up 
     building on currently.'''
     data = pd.DataFrame({'x': param_avg, 'y': var_avg})
     
