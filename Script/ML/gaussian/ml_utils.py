@@ -13,6 +13,15 @@ from dask.distributed import Client
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.impute import SimpleImputer
+
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF, Matern, WhiteKernel,ConstantKernel
+from sklearn.gaussian_process.kernels import ConstantKernel, RBF
+from sklearn.metrics.pairwise import linear_kernel as Linear
+
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import r2_score
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ----  server request to aid processing  ----
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -111,6 +120,17 @@ def subset_param(param):
     param_avg = params[param]
     
     return param_avg
+
+# wrangle parameter data 
+def param_wrangling(param):
+        # Reshape preloaded parameter data 
+        # into a numpy array with shape (500, 32)
+        param_values = params.to_array().values
+
+        # each row represents a simulation and each column represents a parameter
+        param = param_values.reshape(500, -1)
+
+        return param
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
