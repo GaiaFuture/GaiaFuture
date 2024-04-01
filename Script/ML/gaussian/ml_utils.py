@@ -191,7 +191,7 @@ def subset_var_cluster(var):
     # convert xr.ds to xr.da
     da = da[var]
 
-    return da
+    return da.compute()
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
