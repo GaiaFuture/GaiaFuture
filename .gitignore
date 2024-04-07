@@ -4,3 +4,7 @@ dask-worker.*
 __pycache__
 /.ipynb_checkpoints/
 .ipynb_checkpoints
+Scripts/ML/gaussian/emulation_results/
+Scripts/ML/gaussian/saves/
+Scripts/ML/gaussian/best_predictions
+
