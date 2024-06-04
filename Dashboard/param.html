@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Visualization</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px auto;
+            max-width: 800px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .data-table {
+            margin-bottom: 20px;
+            border-collapse: collapse;
+            width: 100%;
+        }
+        
+        .data-table th,
+        .data-table td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .data-table th {
+            background-color: #f2f2f2;
+        }
+
+        .search-bar {
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-bar input:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        p {
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Introduction to Parameters</h2>
+        <p>
+            Here are 32 parameters categorized into different domains such as Biogeochemistry, Hydrology, Biophysics, and Stomatal Conductance & Photosynthesis.
+        </p>
+
+        <h2>All Parameters</h2>
+
+        <div class="search-bar">
+            <input type="text" id="searchInput" onkeyup="searchData()" placeholder="Search for...">
+        </div>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Full Name</th>
+                    <th>Category</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data items will be generated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Data
+        // Updated data with full names
+        const dataWithFullNames = {
+    FUN_FRACFIXERS: ['The maximum fraction of assimilated carbon that can be used to pay for N fixation', 'Biogeochemistry', '#AE7E47'],
+    KCN: ['Nitrogen uptake cost', 'Biogeochemistry', '#AE7E47'],
+    A_FIX: ['Parameter \'a\' of temp response of N fixation (Houlton et al.  2008)', 'Biogeochemistry', '#AE7E47'],
+    CRIT_DAYL: ['Critical day length for senescence', 'Biogeochemistry', '#AE7E47'],
+    D_MAX: ['Dry surface layer parameter', 'Hydrology', '#4777AE'],
+    FFF: ['Decay factor for fractional saturated area', 'Hydrology', '#4777AE'],
+    FROOT_LEAF: ['Allocation parameter: new fine root C per new leaf C', 'Biogeochemistry', '#AE7E47'],
+    FSTOR2TRAN: ['Fraction of storage to move to transfer for each onset', 'Biogeochemistry', '#AE7E47'],
+    GRPERC: ['Growth respiration factor', 'Biogeochemistry', '#AE7E47'],
+    JMAXB0: ['Baseline proportion of nitrogen allocated for electron transport', 'Stomatal Conductance &\nPhotosynthesis', '#47AE4B'],
+    JMAXB1: ['Response of jmax to light availability', 'Stomatal Conductance &\nPhotosynthesis', '#47AE4B'],
+    KCHA: ['Activation energy for kc', 'Stomatal Conductance &\nPhotosynthesis', '#47AE4B'],
+    KMAX: ['Plant segment max conductance', 'Stomatal Conductance &\nPhotosynthesis', '#47AE4B'],
+    KRMAX: ['Root segment max conductance', 'Stomatal Conductance &\nPhotosynthesis', '#47AE4B'],
+    LEAF_LONG: ['Leaf longevity', 'Biogeochemistry', '#AE7E47'],
+    LEAFCN: ['Leaf C:N', 'Biogeochemistry', '#AE7E47'],
+    LMR_INTERCEPT_ATKIN: ['Intercept in the calculation of the top of canopy leaf maintenance respiration base rate. Original values from Atkin et al. in prep 2016.', 'Biogeochemistry', '#AE7E47'],
+    LMRHA: ['Activation energy for lmr', 'Stomatal Conductance &\nPhotosynthesis', '#47AE4B'],
+    LMRHD: ['Deactivation energy for lmr', 'Stomatal Conductance &\nPhotosynthesis', '#47AE4B'],
+    MEDLYNINTERCEPT: ['Medlyn intercept of conductance-photosynthesis relationship', 'Stomatal Conductance &\nPhotosynthesis', '#47AE4B'],
+    MEDLYNSLOPE: ['Medlyn slope of conductance-photosynthesis relationship', 'Stomatal Conductance &\nPhotosynthesis', '#47AE4B'],
+    NSTEM: ['Stem number', 'Biophysics', '#AE47AA'],
+    PSI50: ['Water potential at 50% loss of conductance', 'Stomatal Conductance &\nPhotosynthesis', '#47AE4B'],
+    Q10_MR: ['Q10 for maintenance respiration', 'Biogeochemistry', '#AE7E47'],
+    SLATOP: ['Specific Leaf Area (SLA) at top of canopy, projected area basis', 'Stomatal Conductance &\nPhotosynthesis', '#47AE4B'],
+    SOILPSI_OFF: ['Critical soil water potential for leaf offset', 'Biogeochemistry', '#AE7E47'],
+    STEM_LEAF: ['Allocation parameter: new stem C per new leaf C (-1 means use dynamic stem allocation)', 'Biogeochemistry', '#AE7E47'],
+    SUCSAT_SF: ['Scale factor for sucsat', 'Hydrology', '#4777AE'],
+    THETA_CJ: ['Empirical curvature parameter for ac, aj photosynthesis co-limitation', 'Stomatal Conductance &\nPhotosynthesis', '#47AE4B'],
+    TPU25RATIO: ['Ratio of tpu25top to vcmax25top', 'Stomatal Conductance &\nPhotosynthesis', '#47AE4B'],
+    TPUSE_SF: ['Scale factor for tpuse', 'Stomatal Conductance &\nPhotosynthesis', '#47AE4B'],
+    WC2WJB0: ['The baseline ratio of rubisco limited rate vs light limited photosynthetic rate (Wc:Wj)', 'Stomatal Conductance &\nPhotosynthesis', '#47AE4B']
+};
+
+        // Function to create and append a row for each data item in the table
+        function createDataRow(key, value) {
+            const table = document.querySelector('.data-table tbody');
+            const row = table.insertRow();
+            const paramNameCell = row.insertCell(0);
+            const fullNameCell = row.insertCell(1);
+            const categoryCell = row.insertCell(2);
+            
+            paramNameCell.textContent = key;
+            fullNameCell.textContent = value[0];
+            categoryCell.textContent = value[1];
+            row.style.backgroundColor = value[2];
+        }
+
+        // Loop through data and create rows in the table
+        Object.entries(dataWithFullNames).forEach(([key, value]) => {
+            createDataRow(key, value);
+        });
+
+        // Function to filter data based on search input
+        function searchData() {
+            const input = document.getElementById('searchInput').value.toLowerCase();
+            const rows = document.querySelectorAll('.data-table tbody tr');
+
+            rows.forEach(row => {
+                let found = false;
+        row.querySelectorAll('td').forEach(cell => {
+            if (cell.textContent.toLowerCase().includes(input)) {
+                found = true;
+            }
+        });
+
+        if (found) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+    </script>
+</body>
+</html>
