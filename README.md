@@ -1,4 +1,4 @@
-# Greetings and Welcome to the Dashboard Developmental Playground !
+# Greetings and Welcome to the Dashboard Developmental Playground!
 
 This repository contains a large majority of our team's scratch work and early approaches to developing a Gaussian Process Regression Emulator. Please don't mind the mess, we were very busy having fun. 
 
