@@ -218,19 +218,6 @@ X_values = np.full((10, 32), 0.5)  # Fill array with 0.5
 
 def train_emulator(param, var):
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    #----   If-else Load Pickled Mode   ----
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # if it's already been queried and saved, pull it!
-    filename = os.path.join("emulation_results", f"gpr_model{var}.sav")
-
-    if os.path.exists(filename):
-        # load the model from disk
-        loaded_model = pickle.load(open(filename, 'rb'))
-        
-    else:
-        print(f"Training and plotting your data, this may take a few minutes")
-     
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # ----      Split Data 90/10        ----
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # data for splitting
@@ -273,6 +260,9 @@ def train_emulator(param, var):
     # Verify training score
     train_score = gpr_model.score(X_train, y_train)
 
+    # Accuracy Score
+    #accuracy = accuracy_score(y_test, y_pred)
+
     # Calculate Mean Absolute Error
     mae = mean_absolute_error(y_test, y_pred)
     
@@ -293,18 +283,22 @@ def train_emulator(param, var):
     # Add metrics to the DataFrame
     results_df['R^2'] = r2_train
     results_df['RMSE'] = rmse_train
+    #results_df['Accuracy Score'] = accuracy
     results_df['Mean Absolute Error'] = mae
     
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # ----      Pickle Emulation     ----
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # save the model to disk
-    pickle.dump(gpr_model, open(filename, 'wb')) 
-  
+    # work in progress in GaiaFuture/Scripts/ML/Gaussian/gpr_pickling.ipynb
+
+
+
+    
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # ----        Print Metrics         ----
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Print Training Metrics
+  #  print("Accuracy Score:", accuracy)
     print("Training R^2:", r2_train)
     print("Training RMSE:", rmse_train)
     print("Mean Absolute Error:", mae)
@@ -320,7 +314,10 @@ def train_emulator(param, var):
     
     #For the parameter of interest, replace the 0.5 with a range of values between 0 and 1
     X_values[:, 15] = np.linspace(0, 1, 10)  # Set the 15th column values to evenly spaced values from 0 to 1
-    coef_deter = r2_score(y_test,y_pred)
+
+    # Predict mean and standard deviation of the Gaussian process at each point in x_values
+    y_pred, y_std = gpr_model.predict(X_values, return_std=True)
+    coef_deter = r2_score(y_test[:10],y_pred[:10])
 
     
     # Plot the results
@@ -355,8 +352,8 @@ def train_emulator(param, var):
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # ----      Visualize Accuracy      ----
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
-    plt.errorbar(y_test,
-                 y_pred,
+    plt.errorbar(y_test[:10],
+                 y_pred[:10],
                  yerr=3*y_std,
                  fmt="o",
                  color='#134611')
@@ -380,8 +377,6 @@ def train_emulator(param, var):
     plt.tight_layout()
 
     return plt.show()
-
-
 
 # Define a custom function to generate the Gaussian regression line for each parameter
 def gaussian_regression_lines(model, X):
