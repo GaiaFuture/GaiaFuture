@@ -5,7 +5,7 @@ This repository contains a large majority of our team's draft work and early app
 You'll notice there is a collection of folders found under the Scripts folder, these detail early iterations of our workflow, as well as ideas for future scaffolding. To see the final version of the dashboard contents workflow, please visit our official repository: https://github.com/GaiaFuture/CLM5_PPE_Emulator.
 
 ### File Structure and Contents
-`
+```
 GaiaFuture
 │   README.md
 │   gitignore    
@@ -18,7 +18,7 @@ GaiaFuture
 │
 └───Script 
     │   contains files used by the students to test ideas in the initial phase of this project, separated into folders based on what portion of the project they were related to
-`
+```
 
 ### References
 Referenced materials are available inside each jupyter notebook
